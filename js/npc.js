@@ -1,4 +1,6 @@
 // Define NPCs
+const mapSize = 40;
+
 const npcs = [
     {
         name: "Old Man",
@@ -15,8 +17,16 @@ const npcs = [
         y: 10,
         dialogue: "I have some rare items for sale.",
         givesQuest: false,
-        emoji: '🧙‍♂️'
+        emoji: '🛍'
     },
+    {
+        name: "Unknown",
+        x: 2,
+        y: 2,
+        dialogue: "...",
+        givesQuest: false,
+        emoji: '🥷'
+    }
     // Add more NPCs as needed
 ];
 
@@ -47,10 +57,10 @@ function addNPCsToMap(map, cellSize) {
         map.appendChild(npcElement);
 
         // Add walking animation
-        setInterval(() => {
-            npcElement.style.left = `${Math.floor(Math.random() * mapSize) * cellSize}px`;
-            npcElement.style.top = `${Math.floor(Math.random() * mapSize) * cellSize}px`;
-        }, 5000); // Change position every 5 seconds
+        // setInterval(() => {
+        //     npcElement.style.left = `${Math.floor(Math.random() * mapSize) * cellSize}px`;
+        //     npcElement.style.top = `${Math.floor(Math.random() * mapSize) * cellSize}px`;
+        // }, 5000); // Change position every 5 seconds
     });
 }
 

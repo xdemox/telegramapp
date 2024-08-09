@@ -61,6 +61,34 @@ const questTypes = [
         checkCompletion: () => {
             return character.exploredAreas.includes('ancient ruins');
         }
+    },
+    {
+        type: "Find the Lost Relic",
+        description: "Locate and retrieve the ancient relic from the forgotten temple.",
+        target: "Relic",
+        reward: () => "Mystic Staff",
+        onComplete: (quest) => {
+            const relic = items.find(item => item.name === "Mystic Staff");
+            addItem(relic);
+        }
+    },
+    {
+        type: "Defeat the Dragon",
+        description: "Slay the dragon terrorizing the village.",
+        target: "Dragon",
+        reward: () => 200,
+        onComplete: (quest) => {
+            character.gold += 200;
+        }
+    },
+    {
+        type: "Gather Herbs",
+        description: "Collect 10 Healing Herbs for the village healer.",
+        target: "Healing Herb",
+        reward: () => 50,
+        onComplete: (quest) => {
+            character.gold += 50;
+        }
     }
 ];
 
