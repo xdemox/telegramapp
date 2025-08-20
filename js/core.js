@@ -154,14 +154,16 @@ function chooseClass(className) {
 function updateCharacterInfo() {
     characterInfo.innerHTML = `
         <h3>${character.name}</h3>
-        <p>Class: ${character.class}</p>
-        <p>Level: ${character.level}</p>
-        <p>Health: ${character.health}/${character.maxHealth}</p>
-        <p>Strength: ${character.strength}</p>
-        <p>Dexterity: ${character.dexterity}</p>
-        <p>Intelligence: ${character.intelligence}</p>
-        <p>Experience: ${character.experience}</p>
-        <p>Gold: ${character.gold}</p>
+        <div class="badges">
+            <span class="badge"><span class="emoji">🧙‍♂️</span>${character.class ?? 'Unassigned'}</span>
+            <span class="badge"><span class="emoji">⭐</span>Lv ${character.level}</span>
+            <span class="badge"><span class="emoji">❤️</span>${character.health}/${character.maxHealth}</span>
+            <span class="badge"><span class="emoji">💪</span>${character.strength}</span>
+            <span class="badge"><span class="emoji">🤸</span>${character.dexterity}</span>
+            <span class="badge"><span class="emoji">🧠</span>${character.intelligence}</span>
+            <span class="badge"><span class="emoji">🎖️</span>${character.experience} XP</span>
+            <span class="badge"><span class="emoji">🪙</span>${character.gold}</span>
+        </div>
     `;
 }
 // ----- End of Character Info Update -----
