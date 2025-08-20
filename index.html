@@ -38,8 +38,7 @@
 #map {
     position: absolute;
     background-color: #3a3;
-    width: calc(40px * 10);  /* Adjusted width based on new cell size and number of cells */
-    height: calc(40px * 10); /* Adjusted height based on new cell size and number of cells */
+    /* Size is controlled by JS to match MAP_SIZE and CELL_SIZE */
 }
 
 .map-cell {
@@ -933,6 +932,10 @@
             <button class="nav-item" onclick="openCrafting()">
                 <span class="emoji">⚒️</span>
                 <span class="label">Craft Items</span>
+            </button>
+            <button class="nav-item" onclick="openSkillsMenu()">
+                <span class="emoji">🧠</span>
+                <span class="label">Skills</span>
             </button>
         </div>
         <div id="quest-details" class="panel">

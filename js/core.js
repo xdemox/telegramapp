@@ -210,6 +210,73 @@ function renderInventory() {
     });
 }
 
+// Inventory helpers used by multiple systems
+function addItem(item) {
+    if (character.inventory.length < character.inventoryLimit) {
+        character.inventory.push(item);
+        renderInventory();
+    } else {
+        alert('Inventory is full!');
+    }
+}
+function removeItem(index) {
+    character.inventory.splice(index, 1);
+    renderInventory();
+}
+function useItem(index) {
+    const item = character.inventory[index];
+    if (!item) return;
+    if (item.effect) {
+        item.effect();
+        removeItem(index);
+    } else if (item.type === 'equipment') {
+        equipItem(index);
+        // equipItem removes the item; no need to remove again
+    }
+    updateCharacterInfo();
+}
+function equipItem(index) {
+    const item = character.inventory[index];
+    if (!item) return;
+    const slot = item.slot || item.type;
+    if (!slot) return;
+    if (character.equipped[slot]) {
+        character.inventory.push(character.equipped[slot]);
+    }
+    character.equipped[slot] = item;
+    character.inventory.splice(index, 1);
+    renderInventory();
+    renderEquippedItems();
+}
+function unequipItem(slot) {
+    if (character.equipped[slot]) {
+        character.inventory.push(character.equipped[slot]);
+        character.equipped[slot] = null;
+        renderInventory();
+        renderEquippedItems();
+    }
+}
+
+// Sorting/filtering for inventory UI
+function sortInventory() {
+    character.inventory.sort((a, b) => a.name.localeCompare(b.name));
+    renderInventory();
+}
+function filterInventory() {
+    const filtered = character.inventory.filter(item => item.type === 'equipment');
+    renderFilteredInventory(filtered);
+}
+function renderFilteredInventory(itemsToRender) {
+    const inventoryGrid = document.getElementById('inventory-grid');
+    inventoryGrid.innerHTML = '';
+    itemsToRender.forEach(item => {
+        const itemDiv = document.createElement('div');
+        itemDiv.classList.add('inventory-item');
+        itemDiv.innerHTML = `${item.emoji} <br> ${item.name}`;
+        inventoryGrid.appendChild(itemDiv);
+    });
+}
+
 function updateCharacterStats() {
     character.strength = 10 + (character.weapon ? character.weapon.damage : 0);
     character.dexterity = 10 + (character.offhand ? character.offhand.defense : 0);
@@ -438,6 +505,31 @@ document.body.addEventListener('keydown', (e) => {
     if (e.key === 'C' || e.key === 'c') {
         openCrafting();
     }
+    // Movement: arrows and WASD
+    const key = e.key.toLowerCase();
+    let dx = 0, dy = 0;
+    if (key === 'arrowup' || key === 'w') dy = -1;
+    if (key === 'arrowdown' || key === 's') dy = 1;
+    if (key === 'arrowleft' || key === 'a') dx = -1;
+    if (key === 'arrowright' || key === 'd') dx = 1;
+    if (dx !== 0 || dy !== 0) {
+        e.preventDefault();
+        const targetX = character.x + dx;
+        const targetY = character.y + dy;
+        const targetCell = mapData.find(c => c.x === targetX && c.y === targetY);
+        if (
+            targetX >= 0 && targetY >= 0 &&
+            targetX < MAP_SIZE && targetY < MAP_SIZE &&
+            targetCell && targetCell.type !== 'obstacle'
+        ) {
+            character.x = targetX;
+            character.y = targetY;
+            updatePlayerPosition();
+            checkLocation(targetX, targetY);
+            revealArea(targetX, targetY);
+            updateVisibility();
+        }
+    }
 });
 // ----- End of Skills System -----
 
@@ -497,6 +589,9 @@ function sellItem(index) {
 function generateMap() {
     map.innerHTML = ''; // Clear the existing map
     mapData.length = 0; // Reset the map data
+    // Ensure the map element matches the logical grid dimensions
+    map.style.width = `${MAP_SIZE * CELL_SIZE}px`;
+    map.style.height = `${MAP_SIZE * CELL_SIZE}px`;
 
     const villageX = Math.floor(MAP_SIZE / 2) + 2;
     const villageY = Math.floor(MAP_SIZE / 2) + 2;
@@ -551,6 +646,8 @@ function generateMap() {
 
     revealArea(character.x, character.y); // Reveal the initial area where the player starts
     updateVisibility(); // Update visibility for the initial state
+    // Start in exploring state on a new map
+    character.currentLocation = 'exploring';
 }
 
 function revealArea(x, y) {
@@ -823,16 +920,15 @@ function enterVillage() {
         map.appendChild(npcElement);
     });
 
-    const player = document.createElement('div'); // or 'span', 'p', etc.
-    player.id = 'player';
-
-    if (player) {
-        player.style.width = `${villageCELL_SIZE}px`;
-        player.style.height = `${villageCELL_SIZE}px`;
-        player.style.left = `${Math.floor(villageMAP_SIZE / 2) * villageCELL_SIZE}px`;
-        player.style.top = `${Math.floor(villageMAP_SIZE / 2) * villageCELL_SIZE}px`;
-        player.textContent = character.emoji; // Player emoji
-        map.appendChild(player);
+    // Reuse existing player element instead of creating a new one
+    const playerEl = document.getElementById('player');
+    if (playerEl) {
+        playerEl.style.width = `${villageCELL_SIZE}px`;
+        playerEl.style.height = `${villageCELL_SIZE}px`;
+        playerEl.style.left = `${Math.floor(villageMAP_SIZE / 2) * villageCELL_SIZE}px`;
+        playerEl.style.top = `${Math.floor(villageMAP_SIZE / 2) * villageCELL_SIZE}px`;
+        playerEl.textContent = character.emoji; // Player emoji
+        map.appendChild(playerEl);
     } else {
         console.error('Player element not found');
     }
@@ -857,12 +953,14 @@ function randomEvent() {
     const event = events[Math.floor(Math.random() * events.length)];
 
     if (event === 'ambush') {
-        if (currentLocation = 'exploring'){
+        // Only allow ambush while exploring
+        if (character.currentLocation !== 'exploring') {
             return;
         }
 
         addVisualFeedback(document.body, "AMBUSH!", 5000);
-        initiateCombat();
+        const enemies = generateEnemies(1);
+        initiateCombat(enemies);
     } else if (event === 'treasureHunt') {
         addVisualFeedback(document.body, "You've found a treasure map!", 5000);
         generateTreasureHunt();
@@ -1013,15 +1111,18 @@ function enterArena() {
         }
     }
 
-    // Place the player in the center of the arena
+    // Place the player in the center of the arena, reusing the existing element
     character.x = Math.floor(arenaMAP_SIZE / 2);
     character.y = Math.floor(arenaMAP_SIZE / 2);
-    player.style.width = `${arenaCELL_SIZE}px`;
-    player.style.height = `${arenaCELL_SIZE}px`;
-    player.style.left = `${character.x * arenaCELL_SIZE}px`;
-    player.style.top = `${character.y * arenaCELL_SIZE}px`;
-    player.textContent = player.emoji; // Player emoji
-    map.appendChild(player);
+    const playerEl = document.getElementById('player');
+    if (playerEl) {
+        playerEl.style.width = `${arenaCELL_SIZE}px`;
+        playerEl.style.height = `${arenaCELL_SIZE}px`;
+        playerEl.style.left = `${character.x * arenaCELL_SIZE}px`;
+        playerEl.style.top = `${character.y * arenaCELL_SIZE}px`;
+        playerEl.textContent = character.emoji; // Player emoji
+        map.appendChild(playerEl);
+    }
 
     const locationInfo = document.getElementById('location-info');
     if (locationInfo) {
@@ -1080,9 +1181,11 @@ function generateEnemies(number) {
     for (let i = 0; i < number; i++) {
         // Select a random enemy template
         const template = enemies[Math.floor(Math.random() * enemyTypes)];
-
-        // Create a new enemy based on the template
-        enemyList.push(template);
+        // Create a copy to avoid mutating base templates
+        const instance = { ...template };
+        instance.health = template.health; // reset to base
+        instance.maxHealth = template.health;
+        enemyList.push(instance);
     }
     return enemyList;
 }
