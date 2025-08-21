@@ -26,9 +26,6 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
             },
         };
 
-        // Add the player to the scene
-        scene.add.existing(this);
-        scene.physics.add.existing(this);
     }
 
     takeDamage(damage) {

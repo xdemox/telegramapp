@@ -46,6 +46,8 @@ export default class MainScene extends Phaser.Scene {
 
         // Create the player
         this.player = new Player(this, 100, 100, 'player', 0);
+        this.add.existing(this.player);
+        this.physics.add.existing(this.player);
         this.physics.add.collider(this.player, layer);
 
 
