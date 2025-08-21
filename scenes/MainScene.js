@@ -20,12 +20,32 @@ export default class MainScene extends Phaser.Scene {
         // Create the tilemap
         const map = this.make.tilemap({ tileWidth: 16, tileHeight: 16, width: 100, height: 100 });
         const tiles = map.addTilesetImage('dungeon_tiles');
-        const layer = map.createLayer(0, tiles, 0, 0);
-        map.setCollisionByExclusion([-1]);
+
+        const layer = map.createBlankLayer('ground', tiles);
+
+        // Create a simple room
+        const floorTile = 6;
+        const wallTile = 21;
+
+        // Fill the floor
+        layer.fill(floorTile);
+
+        // Create walls around the perimeter
+        for (let x = 0; x < map.width; x++) {
+            layer.putTileAt(wallTile, x, 0);
+            layer.putTileAt(wallTile, x, map.height - 1);
+        }
+        for (let y = 0; y < map.height; y++) {
+            layer.putTileAt(wallTile, 0, y);
+            layer.putTileAt(wallTile, map.width - 1, y);
+        }
+
+        // Set collision with walls
+        map.setCollision(wallTile);
 
 
         // Create the player
-        this.player = new Player(this, 100, 100, 'player');
+        this.player = new Player(this, 100, 100, 'player', 0);
         this.physics.add.collider(this.player, layer);
 
 
