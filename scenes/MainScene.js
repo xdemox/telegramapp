@@ -1,3 +1,5 @@
+//MainScene.js
+
 import Player from './player/Player.js';
 
 export default class MainScene extends Phaser.Scene {
@@ -7,7 +9,7 @@ export default class MainScene extends Phaser.Scene {
 
     preload() {
         // Load the player spritesheet
-        this.load.spritesheet('player', 'assets/Entities/Characters/Body_A/Animations/Idle_Base/Idle_Down-Sheet.png', {
+        this.load.spritesheet('player', 'assets/Entities/Npcs/Knight/Animations/Idle/Idle-Sheet.png', {
             frameWidth: 16,
             frameHeight: 16
         });
@@ -19,8 +21,7 @@ export default class MainScene extends Phaser.Scene {
     create() {
         // Create the tilemap
         const map = this.make.tilemap({ tileWidth: 16, tileHeight: 16, width: 100, height: 100 });
-        const tiles = map.addTilesetImage('dungeon_tiles');
-
+        const tiles = map.addTilesetImage('dungeon_tiles', 'dungeon_tiles', 16, 16);
         const layer = map.createBlankLayer('ground', tiles);
 
         // Create a simple room
@@ -46,10 +47,7 @@ export default class MainScene extends Phaser.Scene {
 
         // Create the player
         this.player = new Player(this, 100, 100, 'player', 0);
-        this.add.existing(this.player);
-        this.physics.add.existing(this.player);
         this.physics.add.collider(this.player, layer);
-
 
         // Create the player's idle animation
         this.anims.create({
@@ -58,7 +56,7 @@ export default class MainScene extends Phaser.Scene {
             frameRate: 10,
             repeat: -1
         });
-
+    
         // Play the idle animation
         this.player.anims.play('idle', true);
 
@@ -101,11 +99,13 @@ export default class MainScene extends Phaser.Scene {
 
     renderUI() {
         const uiContainer = document.getElementById('ui-container');
-        uiContainer.innerHTML = `
-            <div>Name: ${this.player.character.name}</div>
-            <div>Level: ${this.player.character.level}</div>
-            <div>Health: ${this.player.character.health}/${this.player.character.maxHealth}</div>
-            <div>Gold: ${this.player.character.gold}</div>
-        `;
+        if (uiContainer && this.player) {
+            uiContainer.innerHTML = `
+                <div>Name: ${this.player.character.name}</div>
+                <div>Level: ${this.player.character.level}</div>
+                <div>Health: ${this.player.character.health}/${this.player.character.maxHealth}</div>
+                <div>Gold: ${this.player.character.gold}</div>
+            `;
+        }
     }
 }

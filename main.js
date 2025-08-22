@@ -1,3 +1,5 @@
+// main.js
+
 import MainScene from './scenes/MainScene.js';
 
 const config = {

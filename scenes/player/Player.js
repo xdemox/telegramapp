@@ -1,6 +1,13 @@
+// Player.js
+
 export default class Player extends Phaser.Physics.Arcade.Sprite {
     constructor(scene, x, y, texture, frame) {
         super(scene, x, y, texture, frame);
+
+        // Add this Player object to the scene's display list.
+        scene.add.existing(this);
+        // Add this Player object to the scene's physics world.
+        scene.physics.add.existing(this);
 
         // Baldur's Gate 3 style means top down view, so we need to make sure the player is rendered on top of the map.
         this.setDepth(1);
